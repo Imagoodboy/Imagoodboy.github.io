@@ -74,7 +74,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Android,study," />
 
 
 
@@ -90,15 +90,19 @@
 
 
 
-<meta name="description" content="(๑•̀ㅂ•́)و✧">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Hello">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="在使用ListView，GridView等控件的时候，如果碰到数据很多的情况，程序就会出现卡顿的现象，这时候就需要进行一定的优化了。">
+<meta name="keywords" content="Android,study">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ViewHolder的一些总结">
+<meta property="og:url" content="http://yoursite.com/2017/05/25/android-1/index.html">
 <meta property="og:site_name" content="Hello">
-<meta property="og:description" content="(๑•̀ㅂ•́)و✧">
+<meta property="og:description" content="在使用ListView，GridView等控件的时候，如果碰到数据很多的情况，程序就会出现卡顿的现象，这时候就需要进行一定的优化了。">
+<meta property="og:image" content="http://yoursite.com/2017/05/25/android-1/pic_1.jpg">
+<meta property="og:updated_time" content="2017-05-25T13:14:26.214Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hello">
-<meta name="twitter:description" content="(๑•̀ㅂ•́)و✧">
+<meta name="twitter:title" content="ViewHolder的一些总结">
+<meta name="twitter:description" content="在使用ListView，GridView等控件的时候，如果碰到数据很多的情况，程序就会出现卡顿的现象，这时候就需要进行一定的优化了。">
+<meta name="twitter:image" content="http://yoursite.com/2017/05/25/android-1/pic_1.jpg">
 
 
 
@@ -126,13 +130,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2017/05/25/android-1/"/>
 
 
 
 
 
-  <title>Hello</title>
+  <title>ViewHolder的一些总结 | Hello</title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -158,9 +162,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-   page-home 
- ">
+  <div class="container sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -253,9 +255,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -281,9 +283,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/05/25/android-1/" itemprop="url">ViewHolder的一些总结</a></h1>
+          <h1 class="post-title" itemprop="name headline">ViewHolder的一些总结</h1>
         
 
         <div class="post-meta">
@@ -352,184 +352,100 @@
       
 
       
+        <p>  在使用ListView，GridView等控件的时候，如果碰到数据很多的情况，程序就会出现卡顿的现象，这时候就需要进行一定的优化了。<br> <a id="more"></a></p>
+<p>##ListView的原理<br>  ListView和GridView类似，都需要通过Adapter来提供要显示的数据。ListView中每一个Item显示都需要Adapter调用一次getView()方法，这个方法会传入一个convertView的参数，返回一个View(即Item显示的View)，如果Item数量很大，为每一个Item都创建一个View对象，会占用大量内存。</p>
+<h2 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h2><h3 id="convertView重用"><a href="#convertView重用" class="headerlink" title="convertView重用"></a>convertView重用</h3><p>  Android提供了一个叫做Recycler(反复循环器)的构件，当ListView滚出屏幕外，对应的Item的View会被缓存到Recycler中。<br><img src="/2017/05/25/android-1/pic_1.jpg" alt="pic_1"><br>如图，一个屏幕最多显示7个Item，如果当Item1滑出屏幕，此时Item1 的View被添加进Recycler中，相应的在下部要产生一个Item8，这时调用getView方法，convertView参数就是Item1 的View。<br>因此，我们就可以重用convertView，来达到性能改善的效果。<br>例如下一个简单的例子:<br><code>public View getView(int position, View convertView, ViewGroup parent) {
+     if (convertView == null) {
+         convertView = View.inflate(mContext, R.layout.item, null);
+       }
+     ((ImageView) convertView.findViewById(R.id.imageView));
+     return convertView;
+ }</code></p>
+<h3 id="ViewHolder重用"><a href="#ViewHolder重用" class="headerlink" title="ViewHolder重用"></a>ViewHolder重用</h3><p>  在getView()方法中操作是这样的，先从xml中创建View对象,（inflate操作，我们采用了重用convertView方法优化）,然后在这个view去findViewById，找到每一个item的子View的控件对象，这里的findViewById操作是一个树查找过程，也是一个耗时的操作，所以这里也需要优化，就是使用ViewHolder，把每一个item的子View控件对象放在Holder中，当第一次创建convertView对象时，便把这些item的子View控件对象findViewById实例化出来并保存到ViewHolder对象中。然后用convertView的setTag将viewHolder对象设置到Tag中， 当以后加载ListView的item时便可以直接从Tag中取出复用ViewHolder对象中的控件对象，不需要再findViewById找item的子控件对象了。这样便大大提高了性能。<br>例如下简单的例子:<br><code>public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder viewHolder;
+        if(convertView == null)
+        {
+            viewHolder = new ViewHolder();
+            convertView = View.inflate(mContext, R.layout.item, null);
+            viewHolder.imageView = (ImageView)convertView.findViewById(R.id.ItemImage);
+        }
+        else{
+            viewHolder = (ViewHolder) convertView.getTag();
+        }
+        viewHolder.imageView.setBackgroundResource(R.drawable.ic_launcher);
+        return convertView;
+    }</code><br>    <code>private class ViewHolder {
+        ImageView imageView;
+    }</code></p>
+
+      
+    </div>
+
+    <div>
+      
         
-          <p>  在使用ListView，GridView等控件的时候，如果碰到数据很多的情况，程序就会出现卡顿的现象，这时候就需要进行一定的优化了。<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/05/25/android-1/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+
+      
+    </div>
+
+    <div>
+      
         
+
       
     </div>
 
     <div>
       
-    </div>
+        
 
-    <div>
-      
-    </div>
-
-    <div>
       
     </div>
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/19/hello/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="遮掩">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hello">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/05/19/hello/" itemprop="url">hello</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-19T14:57:37+08:00">
-                2017-05-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
+        <div class="post-tags">
           
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Diary/" itemprop="url" rel="index">
-                    <span itemprop="name">Diary</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
+            <a href="/tags/Android/" rel="tag"># Android</a>
           
-
+            <a href="/tags/study/" rel="tag"># study</a>
           
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
         
-          
-            <p><img src="/2017/05/19/hello/mypic.jpg" alt="hello_pic"></p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
       
 
       
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/19/hello/" rel="next" title="hello">
+                <i class="fa fa-chevron-left"></i> hello
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
 
       
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -537,6 +453,10 @@
 
 
           
+  <div class="comments" id="comments">
+    
+  </div>
+
 
         </div>
         
@@ -556,8 +476,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -644,6 +573,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#优化"><span class="nav-number">1.</span> <span class="nav-text">优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#convertView重用"><span class="nav-number">1.1.</span> <span class="nav-text">convertView重用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ViewHolder重用"><span class="nav-number">1.2.</span> <span class="nav-text">ViewHolder重用</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -764,6 +709,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
 
   
 
