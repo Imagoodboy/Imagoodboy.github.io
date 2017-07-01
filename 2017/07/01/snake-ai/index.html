@@ -74,7 +74,7 @@
 <link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Android,study,game," />
 
 
 
@@ -90,15 +90,20 @@
 
 
 
-<meta name="description" content="(๑•̀ㅂ•́)و✧">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Hello">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="记得以前看到过一张很火的贪吃蛇AI的gif图，一直想写一个，但是一直没啥动力懒惰，这次借学校课程设计写了一发，做一些总结。">
+<meta name="keywords" content="Android,study,game">
+<meta property="og:type" content="article">
+<meta property="og:title" content="贪吃蛇AI设计">
+<meta property="og:url" content="http://yoursite.com/2017/07/01/snake-ai/index.html">
 <meta property="og:site_name" content="Hello">
-<meta property="og:description" content="(๑•̀ㅂ•́)و✧">
+<meta property="og:description" content="记得以前看到过一张很火的贪吃蛇AI的gif图，一直想写一个，但是一直没啥动力懒惰，这次借学校课程设计写了一发，做一些总结。">
+<meta property="og:image" content="http://yoursite.com/2017/07/01/snake-ai/pic1.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/07/01/snake-ai/snake_map_pic.jpg">
+<meta property="og:updated_time" content="2017-07-01T03:54:32.730Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hello">
-<meta name="twitter:description" content="(๑•̀ㅂ•́)و✧">
+<meta name="twitter:title" content="贪吃蛇AI设计">
+<meta name="twitter:description" content="记得以前看到过一张很火的贪吃蛇AI的gif图，一直想写一个，但是一直没啥动力懒惰，这次借学校课程设计写了一发，做一些总结。">
+<meta name="twitter:image" content="http://yoursite.com/2017/07/01/snake-ai/pic1.jpg">
 
 
 
@@ -126,13 +131,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2017/07/01/snake-ai/"/>
 
 
 
 
 
-  <title>Hello</title>
+  <title>贪吃蛇AI设计 | Hello</title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -158,9 +163,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-   page-home 
- ">
+  <div class="container sidebar-position-left page-post-detail ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -253,9 +256,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -281,9 +284,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/07/01/snake-ai/" itemprop="url">贪吃蛇AI设计</a></h1>
+          <h1 class="post-title" itemprop="name headline">贪吃蛇AI设计</h1>
         
 
         <div class="post-meta">
@@ -352,322 +353,105 @@
       
 
       
+        <p>记得以前看到过一张很火的贪吃蛇AI的gif图，一直想写一个，但是一直<del>没啥动力</del>懒惰，这次借学校课程设计写了一发，做一些总结。<br> <a id="more"></a></p>
+<h2 id="准备阶段"><a href="#准备阶段" class="headerlink" title="准备阶段"></a>准备阶段</h2><p>首先要整理一些基本的思路，例如如何让蛇基本的跑起来，以及吃食物和一些逻辑的判断，这些都是比较容易写的。不想重复造轮子的话，可以网上找一份改造一下。</p>
+<p>其次是算法的构造。将贪吃蛇游戏模型抽象成算法逻辑如下：<br><strong>给你一个起点(蛇头)和一个终点(食物)，要避开障碍物(蛇身)，从起点找到一条可行路到达终点。</strong></p>
+<p>可以想到的基本算法有</p>
+<ul>
+<li>dfs</li>
+<li>bfs</li>
+<li>A*</li>
+<li>IDA*<br>我选择了bfs(<del>比较简单</del>)进行实现。</li>
+</ul>
+<h2 id="编写算法-amp-优化"><a href="#编写算法-amp-优化" class="headerlink" title="编写算法&amp;优化"></a>编写算法&amp;优化</h2><h3 id="初步设计"><a href="#初步设计" class="headerlink" title="初步设计"></a>初步设计</h3><p>在实际编写代码前，需要将算法设计的逻辑进行一个整理，在搜集资料，分析可行方法，如何寻路等，列出了如下初步设计方案：</p>
+<ol>
+<li><strong>bfs得到矩形中，每个位置到达食物的最短路径长度，作用域仅为一次移动（因为每移动一步，布局就变化一次,布局一变就意味着可能存在更优解）</strong></li>
+<li><p><strong>虚拟蛇，判断布局是否为安全（吃完食物后是否可以跟蛇尾运动）</strong><br><strong>安全：</strong><br>(1)吃食物后，可跟蛇尾，向食物方向走一步，重新bfs以及判断。<br><strong>不安全</strong><br>(1)蛇和食物不存在路径，可跟蛇尾。跟蛇尾，bfs+判断<br>(2)蛇和食物不存在路径，不可跟蛇尾，蒙特卡洛or其他随便走一步，bfs+判断</p>
+</li>
+<li><p><strong>蛇行走策略：</strong><br>(1)目标食物，走最短路径<br>(2)目标蛇尾，走最长路径</p>
+</li>
+</ol>
+<p>关于以上方案的一些原因：</p>
+<ol>
+<li>跟蛇尾跑原因：蛇在运动的过程中，蛇尾后面总是不断地出现新的空间，因此如果能跟蛇尾跑，是比较优的解</li>
+<li>布局安全的定义：蛇吃完食物后，是否能跟着蛇尾跑</li>
+<li>使用虚拟蛇先进行模拟探路，如果安全，才让真的蛇去跑，虚拟蛇是不会真正绘制出来，只负责模拟探路</li>
+<li>在追蛇尾时，我们明显是遇到了不安全的布局，那么我们需要在追蛇尾的过程中，尽可能制造（遇见）更多的布局，以便在这些布局中选择更优的解</li>
+</ol>
+<h3 id="算法优化"><a href="#算法优化" class="headerlink" title="算法优化"></a>算法优化</h3><p>在有了具体算法方案后，写了一发，跑了几遍后发现，蛇能吃一段时间的食物，但并不能达到预期的效果(可以吃满全图)，基本在吃完2/4到3/4地图的时候，就GG了。<br><img src="/2017/07/01/snake-ai/pic1.jpg" alt="pic_1"><br>但是每一局的局势都是不一样的，如何比较好的分析死亡原因呢。=。=暴力啊！！然后我就动手截了N局gif图，这里推荐个不错的小工具<a href="https://github.com/NickeManarin/ScreenToGif" target="_blank" rel="external">ScreenToGif</a>。<br>然后开始逐帧分析。在分析过程中，发现如下局势:<br><img src="/2017/07/01/snake-ai/snake_map_pic.jpg" alt="pic_2"><br>如图：1，2帧在吃完食物后，第3帧的蛇出现了不安全局势中的第2种情况（不能吃食物不能跟蛇尾），这时候，我的算法中的设计是，随机朝可行方向走一步，然后。。这只调皮的蛇就往上走，GG了。由第3帧可以发现，如果出现这种局势，不应该是盲目的随机走，而是应该走较深的路径，所谓较深，就是留有较大空间的路径，这样才能创造更多的局势，来尽可能的获取更优解。对于这种情况，再写一发搜索即可。</p>
+<p>有了这个优化后，蛇蛇可以比较欢快的跑起来了。经测试，优化后基本只有吃满全图或者剩余2-4个空余空间(无解循环局面)的情况。</p>
+<p>当然，还是有待进一步优化。。<br>最新进展，发现优化后的算法<del>似乎</del>不会出现无路可走(不可跟蛇尾不可吃食物)的情况（<del>有待进一步验证</del>）。</p>
+
+      
+    </div>
+
+    <div>
+      
         
-          <p>记得以前看到过一张很火的贪吃蛇AI的gif图，一直想写一个，但是一直<del>没啥动力</del>懒惰，这次借学校课程设计写了一发，做一些总结。<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/07/01/snake-ai/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+
+      
+    </div>
+
+    <div>
+      
         
+
       
     </div>
 
     <div>
       
-    </div>
+        
 
-    <div>
-      
-    </div>
-
-    <div>
       
     </div>
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/25/android-1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="遮掩">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hello">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/05/25/android-1/" itemprop="url">ViewHolder的一些总结</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-25T15:02:12+08:00">
-                2017-05-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
+        <div class="post-tags">
           
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
+            <a href="/tags/Android/" rel="tag"># Android</a>
           
-
+            <a href="/tags/study/" rel="tag"># study</a>
           
-            
+            <a href="/tags/game/" rel="tag"># game</a>
           
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
         
-          <p>   在使用ListView，GridView等控件的时候，如果碰到数据很多的情况，程序就会出现卡顿的现象，这时候就需要进行一定的优化了。<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/05/25/android-1/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/25/android-1/" rel="next" title="ViewHolder的一些总结">
+                <i class="fa fa-chevron-left"></i> ViewHolder的一些总结
+              </a>
+            
           </div>
-          <!--/noindex-->
-        
-      
-    </div>
 
-    <div>
-      
-    </div>
+          <span class="post-nav-divider"></span>
 
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/19/hello/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="遮掩">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hello">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/05/19/hello/" itemprop="url">hello</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
+          <div class="post-nav-prev post-nav-item">
             
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-19T14:57:37+08:00">
-                2017-05-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Diary/" itemprop="url" rel="index">
-                    <span itemprop="name">Diary</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
+          </div>
         </div>
-      </header>
-    
-
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          
-            <p><img src="/2017/05/19/hello/mypic.jpg" alt="hello_pic"></p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -675,6 +459,10 @@
 
 
           
+  <div class="comments" id="comments">
+    
+  </div>
+
 
         </div>
         
@@ -694,8 +482,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -782,6 +579,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#准备阶段"><span class="nav-number">1.</span> <span class="nav-text">准备阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编写算法-amp-优化"><span class="nav-number">2.</span> <span class="nav-text">编写算法&优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#初步设计"><span class="nav-number">2.1.</span> <span class="nav-text">初步设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#算法优化"><span class="nav-number">2.2.</span> <span class="nav-text">算法优化</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -902,6 +715,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
 
   
 
